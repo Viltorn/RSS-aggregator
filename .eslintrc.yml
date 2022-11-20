@@ -1,7 +1,4 @@
 root: true
-plugins:
-  - jest
-  - babel
 env:
   browser: true
   node: true
