@@ -100,7 +100,7 @@ const makePosts = (val) => {
   });
 };
 
-export const feedsRender = () => (path, value) => {
+export const rssRender = () => (path, value) => {
   switch (path) {
     case 'feedsTitles':
       makeFeeds(value);

@@ -10,6 +10,7 @@ export default {
     modal: 'Просмотр',
     successLoad: 'RSS успешно загружен',
     errors: {
+      Required: 'Заполните это поле',
       ParsingError: 'Ошибка формата RSS',
       Incorrecturl: 'Ссылка должна быть валидным URL',
       Linkalreadyadded: 'RSS уже существует',
