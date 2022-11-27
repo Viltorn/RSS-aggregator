@@ -8,4 +8,29 @@ i18nIn.init({
   resources: { ru },
 });
 
-export default i18nIn;
+const initialState = {
+  form: {
+    valid: true,
+    errors: '',
+    url: '',
+    btnDisable: false,
+  },
+  feeds: [],
+  language: '',
+};
+
+const feedsState = {
+  feedsTitles: [],
+  feedsPosts: [],
+  feedsCounter: 0,
+  postsCounter: 0,
+  visitedPostList: [],
+  modal: {
+    status: 'close',
+    postTitle: '',
+    postLink: '',
+    description: '',
+  },
+};
+
+export { i18nIn, feedsState, initialState };

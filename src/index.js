@@ -3,29 +3,10 @@ import './styles.scss';
 import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
+import _ from 'lodash';
 import axios from 'axios';
-import i18nIn from './init.js';
+import { i18nIn, feedsState, initialState } from './init.js';
 import { render, rssRender } from './view.js';
-
-console.log('HELLO');
-
-const initialState = {
-  form: {
-    valid: true,
-    errors: '',
-    url: '',
-    btnDisable: false,
-  },
-  feeds: [],
-  language: '',
-};
-
-const feedsState = {
-  feedsTitles: [],
-  feedsPosts: [],
-  feedsCounter: 0,
-  postsCounter: 0,
-};
 
 const feeds = onChange(feedsState, rssRender());
 const state = onChange(initialState, render());
@@ -66,19 +47,37 @@ const makePosts = (html, feedId) => {
     const postTitle = postTitleElement.textContent;
     const postLinkElement = item.querySelector('link');
     const postLink = postLinkElement.textContent;
+    const visited = feeds.visitedPostList.includes(postLink);
+    const postDescription = item.querySelector('description');
+    const description = postDescription.textContent;
     feeds.postsCounter += 1;
-    const postId = feeds.postsCounter;
-    return { feedId, postTitle, postLink, postId };
+    const postId = `${feeds.postsCounter}`;
+    return { feedId, postTitle, postLink, postId, visited, description };
   });
   feeds.feedsPosts.push(...posts);
-  console.log(feeds.feedsPosts);
+};
+
+const showModalWindow = (event) => {
+  const { target } = event;
+  const { id } = target.dataset;
+  const currentPost = _.find(feeds.feedsPosts, { postId: id });
+  const { postLink } = currentPost;
+  const { description } = currentPost;
+  const { postTitle } = currentPost;
+  feeds.modal = { status: 'show', postTitle, description, postLink };
+  feeds.feedsPosts.forEach((post) => {
+    if (post.postId === id && !feeds.visitedPostList.includes(post.postLink)) {
+      post.visited = true;
+      feeds.visitedPostList.push(post.postLink);
+    }
+  });
 };
 
 const refreshPosts = () => {
   const promise = new Promise((resolve) => {
     setTimeout(() => {
       const currentFeeds = state.feeds;
-      feeds.feedsCounter = 0;
+      feeds.postsCounter = 0;
       const initial = Promise.resolve([]);
       currentFeeds.reduce((acc, feed) => acc.then((content) => makeRequest(feed)
         .then((response) => [...content, response.data.contents])), initial)
@@ -103,7 +102,7 @@ const refreshPosts = () => {
 
 const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(state.feeds, 'Linkalreadyadded');
 
-const btn = document.querySelector('button');
+const btn = document.querySelector('button[aria-label="add"]');
 const input = document.querySelector('#url-input');
 const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
@@ -113,7 +112,6 @@ btn.addEventListener('click', (e) => {
   schema.validate(value)
     .then(() => makeRequest(value))
     .then((response) => {
-      console.log(response.data.contents);
       const html = makeParse(response.data.contents);
       makeFeeds(html, value);
       makePosts(html, feeds.feedsCounter);
@@ -127,13 +125,28 @@ btn.addEventListener('click', (e) => {
       console.log(state.feeds);
     })
     .catch((err) => {
-      console.log(err.message);
       const error = err.message;
       state.form.errors = i18nIn.t(`errors.${error}`);
       state.form.valid = false;
       state.form.btnDisable = false;
       input.focus();
     });
+});
+
+const posts = document.querySelector('.posts');
+posts.addEventListener('click', (event) => {
+  event.preventDefault();
+  if (event.target.tagName === 'BUTTON') {
+    showModalWindow(event);
+  }
+});
+
+const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
+closeButtons.forEach((closeBtn) => {
+  closeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    feeds.modal = { ...feeds.modal, status: 'close' };
+  });
 });
 
 state.language = 'ru';

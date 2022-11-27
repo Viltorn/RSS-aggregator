@@ -1,38 +1,11 @@
-import i18nIn from './init';
+import { i18nIn } from './init';
 
 const feedback = document.querySelector('.feedback');
-const btn = document.querySelector('button');
+const btn = document.querySelector('button[aria-label="add"]');
 const h1 = document.querySelector('h1');
 const lead = document.querySelector('p[class="lead"]');
 const label = document.querySelector('label');
-const mt2 = document.querySelector('p[class="mt-2"]');
-
-export const render = () => (path, value) => {
-  switch (path) {
-    case 'form.errors':
-      if (value === 'noerror') {
-        feedback.classList.replace('text-danger', 'text-success');
-      } else if (value !== 'noerror' && feedback.classList.contains('text-success')) {
-        feedback.classList.replace('text-success', 'text-danger');
-      }
-      feedback.innerHTML = value !== 'noerror' ? value : i18nIn.t('successLoad');
-      break;
-    case 'form.language':
-      i18nIn.changeLanguage(value).then(() => {
-        btn.textContent = i18nIn.t('btn');
-        h1.textContent = i18nIn.t('h1');
-        lead.textContent = i18nIn.t('lead');
-        label.textContent = i18nIn.t('label');
-        mt2.textContent = `${i18nIn.t('mt2')} https://ru.hexlet.io/lessons.rss`;
-      });
-      break;
-    case 'form.btnDisable':
-      btn.disabled = value;
-      break;
-    default:
-      break;
-  }
-};
+const mt2 = document.querySelector('p[class="mt-2 mb-0 text-muted"]');
 
 const makeFeeds = (val) => {
   const feedsContainer = document.querySelector('.feeds');
@@ -82,9 +55,10 @@ const makePosts = (val) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
     const a = document.createElement('a');
-    a.classList.add('fw-bold');
+    const textView = post.visited ? 'fw-normal' : 'fw-bold';
+    a.classList.add(textView);
     a.setAttribute('href', `${post.postLink}`);
-    a.setAttribute('data-id', `${post.postId}`);
+    a.dataset.id = `${post.postId}`;
     a.setAttribute('target', '_blank');
     a.setAttribute('rel', 'noopener noreferrer');
     a.textContent = post.postTitle;
@@ -100,6 +74,65 @@ const makePosts = (val) => {
   });
 };
 
+const modal = document.querySelector('#modal');
+const modalTitle = modal.querySelector('h5');
+const modalDescription = modal.querySelector('[class="modal-body text-break"]');
+const modalRefBtn = modal.querySelector('[class="btn btn-primary full-article"]');
+const modalCloseBtn = modalRefBtn.nextElementSibling;
+const body = document.querySelector('body');
+
+const toogleModal = (val) => {
+  if (val.status === 'show') {
+    modalTitle.textContent = val.postTitle;
+    modalDescription.textContent = val.description;
+    modalRefBtn.setAttribute('href', val.postLink);
+    modal.classList.add('show');
+    modal.setAttribute('style', 'display: block;');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.removeAttribute('aria-hidden');
+    body.classList.add('modal-open');
+    body.setAttribute('style', 'overflow: hidden; padding-right: 0px;');
+  } else {
+    modal.classList.remove('show');
+    modal.setAttribute('style', 'display: none;');
+    modal.removeAttribute('role');
+    modal.removeAttribute('aria-modal');
+    modal.setAttribute('aria-hidden', 'true');
+    body.classList.remove('modal-open');
+    body.removeAttribute('style');
+  }
+};
+
+export const render = () => (path, value) => {
+  switch (path) {
+    case 'form.errors':
+      if (value === 'noerror') {
+        feedback.classList.replace('text-danger', 'text-success');
+      } else if (value !== 'noerror' && feedback.classList.contains('text-success')) {
+        feedback.classList.replace('text-success', 'text-danger');
+      }
+      feedback.innerHTML = value !== 'noerror' ? value : i18nIn.t('successLoad');
+      break;
+    case 'language':
+      i18nIn.changeLanguage(value).then(() => {
+        btn.textContent = i18nIn.t('btn');
+        h1.textContent = i18nIn.t('h1');
+        lead.textContent = i18nIn.t('lead');
+        label.textContent = i18nIn.t('label');
+        mt2.textContent = i18nIn.t('mt2');
+        modalRefBtn.textContent = i18nIn.t('modalRef');
+        modalCloseBtn.textContent = i18nIn.t('modalClose');
+      });
+      break;
+    case 'form.btnDisable':
+      btn.disabled = value;
+      break;
+    default:
+      break;
+  }
+};
+
 export const rssRender = () => (path, value) => {
   switch (path) {
     case 'feedsTitles':
@@ -107,6 +140,9 @@ export const rssRender = () => (path, value) => {
       break;
     case 'feedsPosts':
       makePosts(value);
+      break;
+    case 'modal':
+      toogleModal(value);
       break;
     default:
       break;
