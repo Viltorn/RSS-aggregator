@@ -16,7 +16,7 @@ export default {
       ParsingError: 'Ресурс не содержит валидный RSS',
       Incorrecturl: 'Ссылка должна быть валидным URL',
       LinkAlreadyAdded: 'RSS уже существует',
-      NetworkError: 'Проблема с соединением',
+      NetworkError: 'Ошибка сети',
     },
   },
 };
