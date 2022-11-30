@@ -5,15 +5,15 @@ import * as yup from 'yup';
 import onChange from 'on-change';
 import _ from 'lodash';
 import axios from 'axios';
-import { i18nIn, feedsState, initialState } from './init.js';
-import { render, rssRender } from './view.js';
+import { i18nIn, uiState, initialState } from './init.js';
+import { renderError, uiRender } from './view.js';
 
-const feeds = onChange(feedsState, rssRender());
-const state = onChange(initialState, render());
+const whatchedUi = onChange(uiState, uiRender());
+const whatchedState = onChange(initialState, renderError());
 
 const makeRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`)
   .catch(() => {
-    state.form.errors = i18nIn.t('errors.NetworkError');
+    whatchedState.form.errors = i18nIn.t('errors.NetworkError');
     throw Error('Networkerror');
   });
 
@@ -22,22 +22,20 @@ const makeParse = (data) => {
   const doc = parser.parseFromString(data, 'text/xml');
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    state.form.errors = i18nIn.t('errors.ParsingError');
+    whatchedState.form.errors = i18nIn.t('errors.ParsingError');
     throw Error('ParsingError');
   }
   return doc;
 };
 
 const makeFeeds = (html) => {
-  console.log(html);
-  feeds.feedsCounter += 1;
-  const feedId = feeds.feedsCounter;
+  whatchedUi.feedsCounter += 1;
+  const feedId = whatchedUi.feedsCounter;
   const titleElement = html.querySelector('channel > title');
   const title = titleElement.textContent;
   const descriptionElement = html.querySelector('channel > description');
   const description = descriptionElement.textContent;
-  feeds.feedsTitles.push({ feedId, title, description });
-  console.log(feeds.feedsTitles);
+  whatchedUi.feedsTitles.push({ feedId, title, description });
 };
 
 const makePosts = (html, feedId) => {
@@ -47,43 +45,44 @@ const makePosts = (html, feedId) => {
     const postTitle = postTitleElement.textContent;
     const postLinkElement = item.querySelector('link');
     const postLink = postLinkElement.textContent;
-    const visited = feeds.visitedPostList.includes(postLink);
+    const visited = whatchedState.visitedPostList.includes(postLink);
     const postDescription = item.querySelector('description');
     const description = postDescription.textContent;
-    feeds.postsCounter += 1;
-    const postId = `${feeds.postsCounter}`;
+    whatchedUi.postsCounter += 1;
+    const postId = `${whatchedUi.postsCounter}`;
     return { feedId, postTitle, postLink, postId, visited, description };
   });
-  feeds.feedsPosts.push(...posts);
+  whatchedUi.feedsPosts.push(...posts);
 };
 
 const showModalWindow = (event) => {
   const { target } = event;
   const { id } = target.dataset;
-  const currentPost = _.find(feeds.feedsPosts, { postId: id });
+  const currentPost = _.find(whatchedUi.feedsPosts, { postId: id });
   const { postLink } = currentPost;
   const { description } = currentPost;
   const { postTitle } = currentPost;
-  feeds.modal = { status: 'show', postTitle, description, postLink };
-  feeds.feedsPosts.forEach((post) => {
-    if (post.postId === id && !feeds.visitedPostList.includes(post.postLink)) {
+  whatchedUi.modal = { status: 'show', postTitle, description, postLink };
+  whatchedUi.feedsPosts.forEach((post) => {
+    if (post.postId === id && !whatchedState.visitedPostList.includes(post.postLink)) {
       post.visited = true;
-      feeds.visitedPostList.push(post.postLink);
+      whatchedState.visitedPostList.push(post.postLink);
     }
   });
+  console.log(whatchedState.visitedPostList);
 };
 
 const refreshPosts = () => {
-  const promise = new Promise((resolve) => {
+  new Promise((resolve) => {
     setTimeout(() => {
-      const currentFeeds = state.feeds;
-      feeds.postsCounter = 0;
+      const currentFeeds = whatchedState.feeds;
       const initial = Promise.resolve([]);
       currentFeeds.reduce((acc, feed) => acc.then((content) => makeRequest(feed)
         .then((response) => [...content, response.data.contents])), initial)
         .then((data) => {
+          whatchedUi.postsCounter = 0;
+          whatchedUi.feedsPosts = [];
           let feedId = 1;
-          feeds.feedsPosts = [];
           data.forEach((doc) => {
             const html = makeParse(doc);
             makePosts(html, feedId);
@@ -96,39 +95,35 @@ const refreshPosts = () => {
           throw Error('Refresh posts error');
         });
     }, 5000);
-  });
-  promise.then(() => refreshPosts());
+  }).then(() => refreshPosts());
 };
 
-const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(state.feeds, 'Linkalreadyadded');
-
+const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feeds, 'LinkAlreadyAdded');
 const btn = document.querySelector('button[aria-label="add"]');
 const input = document.querySelector('#url-input');
 const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
   e.preventDefault();
-  state.form.btnDisable = true;
+  whatchedUi.btnDisable = true;
   const { value } = input;
   schema.validate(value)
     .then(() => makeRequest(value))
     .then((response) => {
       const html = makeParse(response.data.contents);
       makeFeeds(html, value);
-      makePosts(html, feeds.feedsCounter);
-      state.form.errors = 'noerror';
-      state.form.valid = true;
-      state.feeds.push(value);
+      makePosts(html, whatchedUi.feedsCounter);
+      whatchedState.form.errors = 'noerror';
+      whatchedState.feeds.push(value);
       form.reset();
       input.focus();
-      state.form.btnDisable = false;
+      whatchedUi.btnDisable = false;
       refreshPosts();
-      console.log(state.feeds);
+      console.log(whatchedState.feeds);
     })
     .catch((err) => {
       const error = err.message;
-      state.form.errors = i18nIn.t(`errors.${error}`);
-      state.form.valid = false;
-      state.form.btnDisable = false;
+      whatchedState.form.errors = i18nIn.t(`errors.${error}`);
+      whatchedUi.btnDisable = false;
       input.focus();
     });
 });
@@ -145,8 +140,8 @@ const closeButtons = document.querySelectorAll('[data-bs-dismiss="modal"]');
 closeButtons.forEach((closeBtn) => {
   closeBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    feeds.modal = { ...feeds.modal, status: 'close' };
+    whatchedUi.modal = { ...whatchedUi.modal, status: 'close' };
   });
 });
 
-state.language = 'ru';
+whatchedUi.language = 'ru';

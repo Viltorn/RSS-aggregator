@@ -10,27 +10,27 @@ i18nIn.init({
 
 const initialState = {
   form: {
-    valid: true,
     errors: '',
     url: '',
-    btnDisable: false,
   },
+  visitedPostList: [],
   feeds: [],
-  language: '',
 };
 
-const feedsState = {
+const uiState = {
+  visitedPostList: [],
   feedsTitles: [],
   feedsPosts: [],
   feedsCounter: 0,
   postsCounter: 0,
-  visitedPostList: [],
   modal: {
     status: 'close',
     postTitle: '',
     postLink: '',
     description: '',
   },
+  btnDisable: false,
+  language: '',
 };
 
-export { i18nIn, feedsState, initialState };
+export { i18nIn, uiState, initialState };

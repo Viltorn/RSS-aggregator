@@ -15,8 +15,8 @@ export default {
       Required: 'Не должно быть пустым',
       ParsingError: 'Ресурс не содержит валидный RSS',
       Incorrecturl: 'Ссылка должна быть валидным URL',
-      Linkalreadyadded: 'RSS уже существует',
-      Networkproblem: 'Проблема с соединением',
+      LinkAlreadyAdded: 'RSS уже существует',
+      NetworkError: 'Проблема с соединением',
     },
   },
 };
