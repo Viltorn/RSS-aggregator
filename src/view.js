@@ -10,17 +10,23 @@ import {
 const feedback = document.querySelector('.feedback');
 
 export const renderError = () => (path, value) => {
-  switch (path) {
-    case 'form.errors':
-      if (value === 'noerror') {
-        feedback.classList.replace('text-danger', 'text-success');
-      } else if (value !== 'noerror' && feedback.classList.contains('text-success')) {
-        feedback.classList.replace('text-success', 'text-danger');
-      }
-      feedback.textContent = value !== 'noerror' ? value : i18nIn.t('successLoad');
-      break;
-    default:
-      break;
+  if (path === 'form.errors') {
+    switch (value) {
+      case '':
+        feedback.classList.remove('text-danger' ?? 'text-success');
+        break;
+      case 'success':
+        feedback.classList.add('text-success');
+        feedback.textContent = i18nIn.t('successLoad');
+        break;
+      default:
+        feedback.classList.add('text-danger');
+        feedback.textContent = i18nIn.t(`errors.${value}`);
+        if (feedback.classList.contains('text-success')) {
+          feedback.classList.remove('text-success');
+        }
+        break;
+    }
   }
 };
 

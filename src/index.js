@@ -104,6 +104,7 @@ const input = document.querySelector('#url-input');
 const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
   e.preventDefault();
+  whatchedState.form.errors = '';
   whatchedUi.btnDisable = true;
   const { value } = input;
   schema.validate(value)
@@ -112,7 +113,7 @@ btn.addEventListener('click', (e) => {
       const html = makeParse(response.data.contents);
       makeFeeds(html, value);
       makePosts(html, whatchedUi.feedsCounter);
-      whatchedState.form.errors = 'noerror';
+      whatchedState.form.errors = 'success';
       whatchedState.feeds.push(value);
       form.reset();
       input.focus();
@@ -121,8 +122,7 @@ btn.addEventListener('click', (e) => {
       console.log(whatchedState.feeds);
     })
     .catch((err) => {
-      const error = err.message;
-      whatchedState.form.errors = i18nIn.t(`errors.${error}`);
+      whatchedState.form.errors = err.message;
       whatchedUi.btnDisable = false;
       input.focus();
     });
