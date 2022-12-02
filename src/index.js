@@ -11,7 +11,7 @@ import { renderError, uiRender } from './view.js';
 const whatchedUi = onChange(uiState, uiRender());
 const whatchedState = onChange(initialState, renderError());
 
-const makeRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${url}`)
+const makeRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(url)}`)
   .catch(() => {
     whatchedState.form.errors = i18nIn.t('errors.NetworkError');
     throw Error('Networkerror');
@@ -22,7 +22,7 @@ const makeParse = (data) => {
   const doc = parser.parseFromString(data, 'text/xml');
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    whatchedState.form.errors = i18nIn.t('errors.ParsingError');
+    // whatchedState.form.errors = i18nIn.t('errors.ParsingError');
     throw Error('ParsingError');
   }
   return doc;
@@ -69,7 +69,6 @@ const showModalWindow = (event) => {
       whatchedState.visitedPostList.push(post.postLink);
     }
   });
-  console.log(whatchedState.visitedPostList);
 };
 
 const refreshPosts = () => {
@@ -82,28 +81,26 @@ const refreshPosts = () => {
         .then((data) => {
           whatchedUi.postsCounter = 0;
           whatchedUi.feedsPosts = [];
-          let feedId = 1;
           data.forEach((doc) => {
             const html = makeParse(doc);
-            makePosts(html, feedId);
-            feedId += 1;
+            makePosts(html, whatchedUi.postsCounter);
           });
           resolve();
         })
-        .catch(() => {
+        .catch((err) => {
           resolve();
-          throw Error('Refresh posts error');
+          whatchedState.form.errors = err.message;
         });
     }, 5000);
   }).then(() => refreshPosts());
 };
 
-const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feeds, 'LinkAlreadyAdded');
 const btn = document.querySelector('button[aria-label="add"]');
 const input = document.querySelector('#url-input');
 const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
   e.preventDefault();
+  const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feeds, 'LinkAlreadyAdded');
   whatchedState.form.errors = '';
   whatchedUi.btnDisable = true;
   const { value } = input;
@@ -119,7 +116,6 @@ btn.addEventListener('click', (e) => {
       input.focus();
       whatchedUi.btnDisable = false;
       refreshPosts();
-      console.log(whatchedState.feeds);
     })
     .catch((err) => {
       whatchedState.form.errors = err.message;

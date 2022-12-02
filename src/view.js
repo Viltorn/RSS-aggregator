@@ -14,6 +14,7 @@ export const renderError = () => (path, value) => {
     switch (value) {
       case '':
         feedback.classList.remove('text-danger' ?? 'text-success');
+        feedback.textContent = '';
         break;
       case 'success':
         feedback.classList.add('text-success');
