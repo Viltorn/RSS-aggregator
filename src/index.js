@@ -28,14 +28,14 @@ const makeParse = (data) => {
   return doc;
 };
 
-const makeFeeds = (html) => {
+const makeFeed = (html) => {
   whatchedUi.feedsCounter += 1;
   const feedId = whatchedUi.feedsCounter;
   const titleElement = html.querySelector('channel > title');
   const title = titleElement.textContent;
   const descriptionElement = html.querySelector('channel > description');
   const description = descriptionElement.textContent;
-  whatchedUi.feedsTitles.push({ feedId, title, description });
+  return { feedId, title, description };
 };
 
 const makePosts = (html, feedId) => {
@@ -48,11 +48,15 @@ const makePosts = (html, feedId) => {
     const visited = whatchedState.visitedPostList.includes(postLink);
     const postDescription = item.querySelector('description');
     const description = postDescription.textContent;
-    whatchedUi.postsCounter += 1;
-    const postId = `${whatchedUi.postsCounter}`;
-    return { feedId, postTitle, postLink, postId, visited, description };
+    if (!whatchedState.postLinks.includes(postLink)) {
+      whatchedUi.postsCounter += 1;
+      const postId = `${whatchedUi.postsCounter}`;
+      whatchedState.postLinks.push(postLink);
+      return { feedId, postTitle, postLink, postId, visited, description };
+    }
+    return '';
   });
-  whatchedUi.feedsPosts.push(...posts);
+  return posts.filter((post) => post !== '');
 };
 
 const showModalWindow = (event) => {
@@ -74,22 +78,21 @@ const showModalWindow = (event) => {
 const refreshPosts = () => {
   new Promise((resolve) => {
     setTimeout(() => {
-      const currentFeeds = whatchedState.feeds;
+      const currentFeeds = whatchedState.feedsLinks;
       const initial = Promise.resolve([]);
       currentFeeds.reduce((acc, feed) => acc.then((content) => makeRequest(feed)
         .then((response) => [...content, response.data.contents])), initial)
         .then((data) => {
-          whatchedUi.postsCounter = 0;
-          whatchedUi.feedsPosts = [];
           data.forEach((doc) => {
             const html = makeParse(doc);
-            makePosts(html, whatchedUi.postsCounter);
+            const posts = makePosts(html, whatchedUi.postsCounter);
+            whatchedUi.feedsPosts.push(...posts);
           });
           resolve();
         })
-        .catch((err) => {
+        .catch(() => {
           resolve();
-          whatchedState.form.errors = err.message;
+          throw Error('Incorrect RSS');
         });
     }, 5000);
   }).then(() => refreshPosts());
@@ -100,7 +103,7 @@ const input = document.querySelector('#url-input');
 const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
   e.preventDefault();
-  const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feeds, 'LinkAlreadyAdded');
+  const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feedsLinks, 'LinkAlreadyAdded');
   whatchedState.form.errors = '';
   whatchedUi.btnDisable = true;
   const { value } = input;
@@ -108,10 +111,12 @@ btn.addEventListener('click', (e) => {
     .then(() => makeRequest(value))
     .then((response) => {
       const html = makeParse(response.data.contents);
-      makeFeeds(html, value);
-      makePosts(html, whatchedUi.feedsCounter);
+      const newFeed = makeFeed(html, value);
+      whatchedUi.feedsTitles.push(newFeed);
+      const newPosts = makePosts(html, whatchedUi.feedsCounter);
+      whatchedUi.feedsPosts.push(...newPosts);
       whatchedState.form.errors = 'success';
-      whatchedState.feeds.push(value);
+      whatchedState.feedsLinks.push(value);
       form.reset();
       input.focus();
       whatchedUi.btnDisable = false;

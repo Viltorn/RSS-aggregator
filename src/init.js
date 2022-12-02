@@ -14,7 +14,8 @@ const initialState = {
     url: '',
   },
   visitedPostList: [],
-  feeds: [],
+  feedsLinks: [],
+  postLinks: [],
 };
 
 const uiState = {
