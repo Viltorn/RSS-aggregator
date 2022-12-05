@@ -13,7 +13,7 @@ const whatchedState = onChange(initialState, renderError());
 
 const makeRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(url)}`)
   .catch(() => {
-    throw Error('Networkerror');
+    throw Error('NetworkError');
   });
 
 const makeParse = (data) => {
@@ -88,10 +88,6 @@ const refreshPosts = () => {
             whatchedUi.feedsPosts.push(...posts);
           });
           resolve();
-        })
-        .catch(() => {
-          resolve();
-          throw Error('Incorrect RSS');
         });
     }, 5000);
   }).then(() => refreshPosts());
@@ -102,8 +98,8 @@ const input = document.querySelector('#url-input');
 const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
   e.preventDefault();
-  const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feedsLinks, 'LinkAlreadyAdded');
   whatchedState.form.errors = '';
+  const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feedsLinks, 'LinkAlreadyAdded');
   whatchedUi.btnDisable = true;
   const { value } = input;
   schema.validate(value)
