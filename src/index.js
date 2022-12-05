@@ -5,7 +5,7 @@ import * as yup from 'yup';
 import onChange from 'on-change';
 import _ from 'lodash';
 import axios from 'axios';
-import { i18nIn, uiState, initialState } from './init.js';
+import { uiState, initialState } from './init.js';
 import { renderError, uiRender } from './view.js';
 
 const whatchedUi = onChange(uiState, uiRender());
@@ -13,7 +13,6 @@ const whatchedState = onChange(initialState, renderError());
 
 const makeRequest = (url) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(url)}`)
   .catch(() => {
-    whatchedState.form.errors = i18nIn.t('errors.NetworkError');
     throw Error('Networkerror');
   });
 
