@@ -1,12 +1,10 @@
-import { i18nIn } from './init';
-
 const btn = document.querySelector('button[aria-label="add"]');
 const h1 = document.querySelector('h1');
 const lead = document.querySelector('p[class="lead"]');
 const label = document.querySelector('label');
 const mt2 = document.querySelector('p[class="mt-2 mb-0 text-muted"]');
 
-export const renderTitles = (val) => {
+export const renderTitles = (val, state) => {
   const feedsContainer = document.querySelector('.feeds');
   feedsContainer.innerHTML = '';
   const div = document.createElement('div');
@@ -15,7 +13,7 @@ export const renderTitles = (val) => {
   h2Div.classList.add('card-body');
   const h2 = document.createElement('h2');
   h2.classList.add('card-title', 'h4');
-  h2.textContent = i18nIn.t('feedsTitle');
+  h2.textContent = state.interface.feedsTitle;
   const ul = document.createElement('ul');
   ul.classList.add('list-group', 'border-0', 'rounded-0');
   h2Div.append(h2);
@@ -35,7 +33,7 @@ export const renderTitles = (val) => {
   feedsContainer.append(div);
 };
 
-export const renderPosts = (val) => {
+export const renderPosts = (val, state) => {
   const postsContainer = document.querySelector('.posts');
   postsContainer.innerHTML = '';
   const div = document.createElement('div');
@@ -44,7 +42,7 @@ export const renderPosts = (val) => {
   h2Div.classList.add('card-body');
   const h2 = document.createElement('h2');
   h2.classList.add('card-title', 'h4');
-  h2.textContent = i18nIn.t('postsTitle');
+  h2.textContent = state.interface.postsTitle;
   const ul = document.createElement('ul');
   ul.classList.add('list-group', 'border-0', 'rounded-0');
   h2Div.append(h2);
@@ -67,7 +65,7 @@ export const renderPosts = (val) => {
     modalBtn.dataset.id = `${post.postId}`;
     modalBtn.dataset.bsToogle = 'modal';
     modalBtn.dataset.bsTarget = '#modal';
-    modalBtn.textContent = i18nIn.t('modal');
+    modalBtn.textContent = state.interface.modal;
     li.append(a, modalBtn);
     ul.prepend(li);
   });
@@ -104,15 +102,13 @@ export const toogleModal = (val) => {
 };
 
 export const renderInterface = (val) => {
-  i18nIn.changeLanguage(val).then(() => {
-    btn.textContent = i18nIn.t('btn');
-    h1.textContent = i18nIn.t('h1');
-    lead.textContent = i18nIn.t('lead');
-    label.textContent = i18nIn.t('label');
-    mt2.textContent = i18nIn.t('mt2');
-    modalRefBtn.textContent = i18nIn.t('modalRef');
-    modalCloseBtn.textContent = i18nIn.t('modalClose');
-  });
+  btn.textContent = val.addBtn;
+  h1.textContent = val.h1;
+  lead.textContent = val.lead;
+  label.textContent = val.label;
+  mt2.textContent = val.mt2;
+  modalRefBtn.textContent = val.modalRefBtn;
+  modalCloseBtn.textContent = val.modalCloseBtn;
 };
 
 export const toogleBtn = (val) => {

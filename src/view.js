@@ -30,13 +30,13 @@ export const renderError = () => (path, value) => {
   }
 };
 
-export const uiRender = () => (path, value) => {
+export const uiRender = (state) => (path, value) => {
   switch (path) {
     case 'feedsTitles':
-      renderTitles(value);
+      renderTitles(value, state);
       break;
     case 'feedsPosts':
-      renderPosts(value);
+      renderPosts(value, state);
       break;
     case 'modal':
       toogleModal(value);
@@ -44,7 +44,7 @@ export const uiRender = () => (path, value) => {
     case 'btnDisable':
       toogleBtn(value);
       break;
-    case 'language':
+    case 'interface':
       renderInterface(value);
       break;
     default:
