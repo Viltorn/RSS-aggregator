@@ -1,4 +1,3 @@
-import { i18nIn } from './init';
 import {
   renderInterface,
   renderTitles,
@@ -10,24 +9,24 @@ import {
 const feedback = document.querySelector('.feedback');
 
 export const renderError = () => (path, value) => {
-  if (path === 'form.errors') {
-    switch (value) {
-      case '':
-        feedback.classList.remove('text-danger' ?? 'text-success');
-        feedback.textContent = '';
-        break;
-      case 'success':
+  switch (path) {
+    case 'form.success':
+      if (value !== '') {
         feedback.classList.add('text-success');
-        feedback.textContent = i18nIn.t('successLoad');
-        break;
-      default:
+        feedback.textContent = value;
+      }
+      break;
+    case 'form.errors':
+      feedback.classList.remove('text-danger' ?? 'text-success');
+      if (value === '') {
+        feedback.textContent = '';
+      } else {
         feedback.classList.add('text-danger');
-        feedback.textContent = i18nIn.t(`errors.${value}`);
-        if (feedback.classList.contains('text-success')) {
-          feedback.classList.remove('text-success');
-        }
-        break;
-    }
+        feedback.textContent = value;
+      }
+      break;
+    default:
+      break;
   }
 };
 

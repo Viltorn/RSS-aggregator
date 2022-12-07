@@ -5,6 +5,6 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/d00b54facb37c6439678/maintainability)](https://codeclimate.com/github/Viltorn/frontend-project-11/maintainability)
 
 ### RSS Reader
-Add your favorites links and stay tuned
+Add your favorites links to news and stay tuned
 ### Link
 https://frontend-project-11-weld-five.vercel.app/

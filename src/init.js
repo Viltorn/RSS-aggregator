@@ -10,6 +10,7 @@ i18nIn.init({
 
 const initialState = {
   form: {
+    success: '',
     errors: '',
     url: '',
   },
@@ -19,7 +20,6 @@ const initialState = {
 };
 
 const uiState = {
-  visitedPostList: [],
   feedsTitles: [],
   feedsPosts: [],
   feedsCounter: 0,

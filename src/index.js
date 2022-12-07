@@ -1,11 +1,10 @@
 /* eslint-disable object-curly-newline */
 import './styles.scss';
-import 'bootstrap';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import _ from 'lodash';
 import axios from 'axios';
-import { uiState, initialState } from './init.js';
+import { uiState, initialState, i18nIn } from './init.js';
 import { renderError, uiRender } from './view.js';
 
 const whatchedUi = onChange(uiState, uiRender());
@@ -21,7 +20,6 @@ const makeParse = (data) => {
   const doc = parser.parseFromString(data, 'text/xml');
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    // whatchedState.form.errors = i18nIn.t('errors.ParsingError');
     throw Error('ParsingError');
   }
   return doc;
@@ -99,6 +97,7 @@ const form = document.querySelector('form');
 btn.addEventListener('click', (e) => {
   e.preventDefault();
   whatchedState.form.errors = '';
+  whatchedState.form.success = '';
   const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feedsLinks, 'LinkAlreadyAdded');
   whatchedUi.btnDisable = true;
   const { value } = input;
@@ -110,7 +109,7 @@ btn.addEventListener('click', (e) => {
       whatchedUi.feedsTitles.push(newFeed);
       const newPosts = makePosts(html, whatchedUi.feedsCounter);
       whatchedUi.feedsPosts.push(...newPosts);
-      whatchedState.form.errors = 'success';
+      whatchedState.form.success = i18nIn.t('successLoad');
       whatchedState.feedsLinks.push(value);
       form.reset();
       input.focus();
@@ -118,7 +117,8 @@ btn.addEventListener('click', (e) => {
       refreshPosts();
     })
     .catch((err) => {
-      whatchedState.form.errors = err.message;
+      whatchedState.form.success = '';
+      whatchedState.form.errors = i18nIn.t(`errors.${err.message}`);
       whatchedUi.btnDisable = false;
       input.focus();
     });
@@ -141,3 +141,6 @@ closeButtons.forEach((closeBtn) => {
 });
 
 whatchedUi.language = 'ru';
+
+// "bootstrap": "^5.2.2",
+// import 'bootstrap';
