@@ -105,7 +105,7 @@ export default () => {
       const { description } = currentPost;
       const { postTitle } = currentPost;
       whatchedUi.modal = {
-        status: 'show',
+        status: 'open',
         postTitle,
         description,
         postLink,
@@ -194,8 +194,8 @@ export default () => {
         const postsTitle = i18nIn.t('postsTitle');
         const lead = i18nIn.t('lead');
         const label = i18nIn.t('label');
-        const mt2 = i18nIn.t('mt2');
-        const modal = i18nIn.t('modal');
+        const example = i18nIn.t('example');
+        const modalOpen = i18nIn.t('modalOpen');
         const modalRefBtn = i18nIn.t('modalRef');
         const modalCloseBtn = i18nIn.t('modalClose');
         whatchedUi.language = val;
@@ -206,8 +206,8 @@ export default () => {
           postsTitle,
           lead,
           label,
-          mt2,
-          modal,
+          example,
+          modalOpen,
           modalRefBtn,
           modalCloseBtn,
         };

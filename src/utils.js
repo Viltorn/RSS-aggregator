@@ -2,7 +2,7 @@ const btn = document.querySelector('button[aria-label="add"]');
 const h1 = document.querySelector('h1');
 const lead = document.querySelector('p[class="lead"]');
 const label = document.querySelector('label');
-const mt2 = document.querySelector('p[class="mt-2 mb-0 text-muted"]');
+const example = document.querySelector('p[class="mt-2 mb-0 text-muted"]');
 
 export const renderTitles = (val, state) => {
   const feedsContainer = document.querySelector('.feeds');
@@ -65,7 +65,7 @@ export const renderPosts = (val, state) => {
     modalBtn.dataset.id = `${post.postId}`;
     modalBtn.dataset.bsToogle = 'modal';
     modalBtn.dataset.bsTarget = '#modal';
-    modalBtn.textContent = state.interface.modal;
+    modalBtn.textContent = state.interface.modalOpen;
     li.append(a, modalBtn);
     ul.prepend(li);
   });
@@ -79,7 +79,7 @@ const modalCloseBtn = modalRefBtn.nextElementSibling;
 const body = document.querySelector('body');
 
 export const toogleModal = (val) => {
-  if (val.status === 'show') {
+  if (val.status === 'open') {
     modalTitle.textContent = val.postTitle;
     modalDescription.textContent = val.description;
     modalRefBtn.setAttribute('href', val.postLink);
@@ -106,7 +106,7 @@ export const renderInterface = (val) => {
   h1.textContent = val.h1;
   lead.textContent = val.lead;
   label.textContent = val.label;
-  mt2.textContent = val.mt2;
+  example.textContent = val.example;
   modalRefBtn.textContent = val.modalRefBtn;
   modalCloseBtn.textContent = val.modalCloseBtn;
 };
