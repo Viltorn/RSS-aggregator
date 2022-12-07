@@ -1,4 +1,5 @@
 /* eslint-disable object-curly-newline */
+import 'bootstrap';
 import './styles.scss';
 import * as yup from 'yup';
 import onChange from 'on-change';
@@ -141,6 +142,3 @@ closeButtons.forEach((closeBtn) => {
 });
 
 whatchedUi.language = 'ru';
-
-// "bootstrap": "^5.2.2",
-// import 'bootstrap';
