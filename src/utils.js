@@ -26,7 +26,7 @@ export const renderTitles = (val, state) => {
     h3.textContent = feed.title;
     const p = document.createElement('p');
     p.classList.add('m-0', 'small', 'text-black-50');
-    p.textContent = feed.description;
+    p.textContent = feed.feedDescription;
     li.append(h3, p);
     ul.prepend(li);
   });
