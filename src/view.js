@@ -3,49 +3,38 @@ import {
   renderTitles,
   renderPosts,
   toogleModal,
-  toogleBtn,
+  handleFormStatus,
 } from './utils';
 
-const feedback = document.querySelector('.feedback');
-
-export const renderError = () => (path, value) => {
+export const renderForm = (formElements) => (path, value) => {
   switch (path) {
-    case 'form.success':
-      if (value !== '') {
-        feedback.classList.add('text-success');
-        feedback.textContent = value;
-      }
+    case 'form.status':
+      handleFormStatus(value, formElements);
       break;
     case 'form.errors':
-      feedback.classList.remove('text-danger' ?? 'text-success');
-      if (value === '') {
-        feedback.textContent = '';
-      } else {
-        feedback.classList.add('text-danger');
-        feedback.textContent = value;
-      }
+      formElements.feedback.textContent = value;
+      break;
+    case 'form.successMsg':
+      formElements.feedback.textContent = value;
       break;
     default:
       break;
   }
 };
 
-export const uiRender = (state) => (path, value) => {
+export const uiRender = (state, elements) => (path, value) => {
   switch (path) {
     case 'feedsTitles':
-      renderTitles(value, state);
+      renderTitles(value, state, elements);
       break;
     case 'feedsPosts':
-      renderPosts(value, state);
+      renderPosts(value, state, elements);
       break;
     case 'modal':
-      toogleModal(value);
-      break;
-    case 'btnDisable':
-      toogleBtn(value);
+      toogleModal(value, elements.modal);
       break;
     case 'interface':
-      renderInterface(value);
+      renderInterface(value, elements);
       break;
     default:
       break;

@@ -1,12 +1,5 @@
-const btn = document.querySelector('button[aria-label="add"]');
-const h1 = document.querySelector('h1');
-const lead = document.querySelector('p[class="lead"]');
-const label = document.querySelector('label');
-const example = document.querySelector('p[class="mt-2 mb-0 text-muted"]');
-
-export const renderTitles = (val, state) => {
-  const feedsContainer = document.querySelector('.feeds');
-  feedsContainer.innerHTML = '';
+export const renderTitles = (feeds, state, elements) => {
+  elements.feedsContainer.innerHTML = '';
   const div = document.createElement('div');
   div.classList.add('card', 'border-0');
   const h2Div = document.createElement('div');
@@ -18,7 +11,7 @@ export const renderTitles = (val, state) => {
   ul.classList.add('list-group', 'border-0', 'rounded-0');
   h2Div.append(h2);
   div.append(h2Div, ul);
-  val.forEach((feed) => {
+  feeds.forEach((feed) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'border-0', 'border-end-0');
     const h3 = document.createElement('h3');
@@ -26,16 +19,15 @@ export const renderTitles = (val, state) => {
     h3.textContent = feed.title;
     const p = document.createElement('p');
     p.classList.add('m-0', 'small', 'text-black-50');
-    p.textContent = feed.feedDescription;
+    p.textContent = feed.description;
     li.append(h3, p);
     ul.prepend(li);
   });
-  feedsContainer.append(div);
+  elements.feedsContainer.append(div);
 };
 
-export const renderPosts = (val, state) => {
-  const postsContainer = document.querySelector('.posts');
-  postsContainer.innerHTML = '';
+export const renderPosts = (posts, state, elements) => {
+  elements.postsContainer.innerHTML = '';
   const div = document.createElement('div');
   div.classList.add('card', 'border-0');
   const h2Div = document.createElement('div');
@@ -47,8 +39,8 @@ export const renderPosts = (val, state) => {
   ul.classList.add('list-group', 'border-0', 'rounded-0');
   h2Div.append(h2);
   div.append(h2Div, ul);
-  postsContainer.append(div);
-  val.forEach((post) => {
+  elements.postsContainer.append(div);
+  posts.forEach((post) => {
     const li = document.createElement('li');
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
     const a = document.createElement('a');
@@ -71,46 +63,58 @@ export const renderPosts = (val, state) => {
   });
 };
 
-const modal = document.querySelector('#modal');
-const modalTitle = modal.querySelector('h5');
-const modalDescription = modal.querySelector('[class="modal-body text-break"]');
-const modalRefBtn = modal.querySelector('[class="btn btn-primary full-article"]');
-const modalCloseBtn = modalRefBtn.nextElementSibling;
-const body = document.querySelector('body');
-
-export const toogleModal = (val) => {
+export const toogleModal = (val, elements) => {
   if (val.status === 'open') {
-    modalTitle.textContent = val.postTitle;
-    modalDescription.textContent = val.description;
-    modalRefBtn.setAttribute('href', val.postLink);
-    modal.classList.add('show');
-    modal.setAttribute('style', 'display: block;');
-    modal.setAttribute('role', 'dialog');
-    modal.setAttribute('aria-modal', 'true');
-    modal.removeAttribute('aria-hidden');
-    body.classList.add('modal-open');
-    body.setAttribute('style', 'overflow: hidden; padding-right: 0px;');
+    elements.modalTitle.textContent = val.postTitle;
+    elements.modalDescription.textContent = val.postDescription;
+    elements.modalRefBtn.setAttribute('href', val.postLink);
+    elements.modalWindow.classList.add('show');
+    elements.modalWindow.setAttribute('style', 'display: block;');
+    elements.modalWindow.setAttribute('role', 'dialog');
+    elements.modalWindow.setAttribute('aria-modal', 'true');
+    elements.modalWindow.removeAttribute('aria-hidden');
+    elements.body.classList.add('modal-open');
+    elements.body.setAttribute('style', 'overflow: hidden; padding-right: 0px;');
   } else {
-    modal.classList.remove('show');
-    modal.setAttribute('style', 'display: none;');
-    modal.removeAttribute('role');
-    modal.removeAttribute('aria-modal');
-    modal.setAttribute('aria-hidden', 'true');
-    body.classList.remove('modal-open');
-    body.removeAttribute('style');
+    elements.modalWindow.classList.remove('show');
+    elements.modalWindow.setAttribute('style', 'display: none;');
+    elements.modalWindow.removeAttribute('role');
+    elements.modalWindow.removeAttribute('aria-modal');
+    elements.modalWindow.setAttribute('aria-hidden', 'true');
+    elements.body.classList.remove('modal-open');
+    elements.body.removeAttribute('style');
   }
 };
 
-export const renderInterface = (val) => {
-  btn.textContent = val.addBtn;
-  h1.textContent = val.h1;
-  lead.textContent = val.lead;
-  label.textContent = val.label;
-  example.textContent = val.example;
-  modalRefBtn.textContent = val.modalRefBtn;
-  modalCloseBtn.textContent = val.modalCloseBtn;
+export const renderInterface = (val, elements) => {
+  elements.form.addBtn.textContent = val.addBtn;
+  elements.interface.h1.textContent = val.h1;
+  elements.interface.lead.textContent = val.lead;
+  elements.interface.label.textContent = val.label;
+  elements.interface.example.textContent = val.example;
+  elements.modal.modalRefBtn.textContent = val.modalRefBtn;
+  elements.modal.modalCloseBtn.textContent = val.modalCloseBtn;
 };
 
-export const toogleBtn = (val) => {
-  btn.disabled = val;
+export const handleFormStatus = (value, elements) => {
+  switch (value) {
+    case 'filling':
+      elements.addBtn.disabled = false;
+      break;
+    case 'sending':
+      elements.addBtn.disabled = true;
+      elements.feedback.classList.remove('text-danger' ?? 'text-success');
+      break;
+    case 'success':
+      elements.feedback.classList.add('text-success');
+      elements.form.reset();
+      elements.input.focus();
+      break;
+    case 'error':
+      elements.feedback.classList.add('text-danger');
+      elements.input.focus();
+      break;
+    default:
+      break;
+  }
 };

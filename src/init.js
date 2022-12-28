@@ -4,7 +4,7 @@ import _ from 'lodash';
 import onChange from 'on-change';
 import * as yup from 'yup';
 import ru from './locales/ru.js';
-import { renderError, uiRender } from './view.js';
+import { renderForm, uiRender } from './view.js';
 
 export default () => {
   const i18nIn = i18n.createInstance();
@@ -16,9 +16,9 @@ export default () => {
   }).then(() => {
     const initialState = {
       form: {
-        success: '',
+        status: 'filling',
+        successMsg: '',
         errors: '',
-        url: '',
       },
       visitedPostList: [],
       feedsLinks: [],
@@ -34,18 +34,44 @@ export default () => {
         postLink: '',
         description: '',
       },
-      btnDisable: false,
       interface: {},
       language: '',
     };
 
-    const whatchedUi = onChange(uiState, uiRender(uiState));
-    const whatchedState = onChange(initialState, renderError());
+    const modalFooter = document.querySelector('.modal-footer');
+
+    const elements = {
+      form: {
+        feedback: document.querySelector('.feedback'),
+        addBtn: document.querySelector('button[aria-label="add"]'),
+        input: document.querySelector('#url-input'),
+        form: document.querySelector('form'),
+      },
+      interface: {
+        h1: document.querySelector('h1'),
+        lead: document.querySelector('p[class="lead"]'),
+        label: document.querySelector('label'),
+        example: document.querySelector('p[class="mt-2 mb-0 text-muted"]'),
+      },
+      modal: {
+        modalWindow: document.querySelector('#modal'),
+        modalTitle: document.querySelector('.modal-title'),
+        modalDescription: document.querySelector('[class="modal-body text-break"]'),
+        modalRefBtn: modalFooter.querySelector('[class="btn btn-primary full-article"]'),
+        modalCloseBtn: modalFooter.querySelector('[class="btn btn-secondary"]'),
+        body: document.querySelector('body'),
+      },
+      feedsContainer: document.querySelector('.feeds'),
+      postsContainer: document.querySelector('.posts'),
+    };
+
+    const whatchedUi = onChange(uiState, uiRender(uiState, elements));
+    const whatchedState = onChange(initialState, renderForm(elements.form));
 
     const makeURL = (link) => {
       const url = new URL('/get', 'https://allorigins.hexlet.app');
       url.searchParams.append('disableCache', 'true');
-      const newLink = encodeURI(link); // encodeURIComponent encodeURI
+      const newLink = encodeURI(link);
       url.searchParams.append('url', newLink);
       return url.toString();
     };
@@ -56,40 +82,48 @@ export default () => {
       });
 
     const makeParse = (data) => {
-      try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(data, 'text/xml');
-        const feedId = whatchedUi.feedsTitles.length + 1;
-        const titleElement = doc.querySelector('channel > title');
-        const title = titleElement.textContent;
-        const descriptionElement = doc.querySelector('channel > description');
-        const feedDescription = descriptionElement.textContent;
-        const items = [...doc.querySelectorAll('item')];
-        const feed = { feedId, title, feedDescription };
-        let postCounter = whatchedUi.feedsPosts.length + 1;
-        const posts = items.map((item) => {
-          const postTitleElement = item.querySelector('title');
-          const postTitle = postTitleElement.textContent;
-          const postLinkElement = item.querySelector('link');
-          const postLink = postLinkElement.textContent;
-          const visited = whatchedState.visitedPostList.includes(postLink);
-          const postDescription = item.querySelector('description');
-          const description = postDescription.textContent;
-          const postId = `${postCounter}`;
-          postCounter += 1;
-          return {
-            feedId,
-            postTitle,
-            postLink,
-            postId,
-            visited,
-            description,
-          };
-        });
-        return { feed, posts };
-      } catch (error) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data, 'text/xml');
+      const errorNode = doc.querySelector('parsererror');
+      if (errorNode) {
         throw Error('ParsingError');
       }
+      const feedTitle = doc.querySelector('channel > title');
+      const feedDescription = doc.querySelector('channel > description');
+      const items = [...doc.querySelectorAll('item')];
+      const posts = items.map((item) => {
+        const title = item.querySelector('title');
+        const link = item.querySelector('link');
+        const description = item.querySelector('description');
+        return { title, link, description };
+      });
+      return { feedTitle, feedDescription, posts };
+    };
+
+    const addFeeds = (feedTitle, feedDescription) => {
+      const title = feedTitle.textContent;
+      const description = feedDescription.textContent;
+      whatchedUi.feedsTitles.push({ title, description });
+    };
+
+    const addPosts = (posts) => {
+      posts.forEach((post) => {
+        const postTitle = post.title.textContent;
+        const postLink = post.link.textContent;
+        const visited = whatchedState.visitedPostList.includes(postLink);
+        const postDescription = post.description.textContent;
+        if (!whatchedState.postLinks.includes(postLink)) {
+          const postId = _.uniqueId();
+          whatchedUi.feedsPosts.push({
+            postId,
+            postDescription,
+            postLink,
+            postTitle,
+            visited,
+          });
+          whatchedState.postLinks.push(postLink);
+        }
+      });
     };
 
     const showModalWindow = (event) => {
@@ -97,12 +131,12 @@ export default () => {
       const { id } = target.dataset;
       const currentPost = _.find(whatchedUi.feedsPosts, { postId: id });
       const { postLink } = currentPost;
-      const { description } = currentPost;
+      const { postDescription } = currentPost;
       const { postTitle } = currentPost;
       whatchedUi.modal = {
         status: 'open',
         postTitle,
-        description,
+        postDescription,
         postLink,
       };
       whatchedUi.feedsPosts.forEach((post) => {
@@ -118,49 +152,33 @@ export default () => {
       const promises = currentFeeds.map((feed) => makeRequest(makeURL(feed))
         .then((response) => {
           const { posts } = makeParse(response.data.contents);
-          posts.forEach((post) => {
-            if (!whatchedState.postLinks.includes(post.postLink)) {
-              post.postId = whatchedUi.feedsPosts.length + 1;
-              whatchedState.postLinks.push(post.postLink);
-              whatchedUi.feedsPosts.push(post);
-            }
-          });
+          addPosts(posts);
         }));
-      Promise.all(promises).then(() => setTimeout(() => refreshPosts(), 5000));
+      Promise.all(promises).finally(() => setTimeout(() => refreshPosts(), 5000));
     };
 
-    const btn = document.querySelector('button[aria-label="add"]');
-    const input = document.querySelector('#url-input');
-    const form = document.querySelector('form');
-    btn.addEventListener('click', (e) => {
+    elements.form.addBtn.addEventListener('click', (e) => {
       e.preventDefault();
       whatchedState.form.errors = '';
-      whatchedState.form.success = '';
+      whatchedState.form.successMsg = '';
+      whatchedState.form.status = 'sending';
       const schema = yup.string().required('Required').url('Incorrecturl').notOneOf(whatchedState.feedsLinks, 'LinkAlreadyAdded');
-      whatchedUi.btnDisable = true;
-      const { value } = input;
+      const { value } = elements.form.input;
       schema.validate(value)
         .then(() => makeRequest(makeURL(value)))
         .then((response) => {
-          const { feed, posts } = makeParse(response.data.contents);
-          whatchedUi.feedsTitles.push(feed);
-          posts.forEach((post) => {
-            whatchedUi.feedsPosts.push(post);
-            whatchedState.postLinks.push(post.postLink);
-          });
-          whatchedState.form.success = i18nIn.t('successLoad');
+          const { feedTitle, feedDescription, posts } = makeParse(response.data.contents);
+          addFeeds(feedTitle, feedDescription);
+          addPosts(posts);
+          whatchedState.form.status = 'success';
+          whatchedState.form.successMsg = i18nIn.t('successLoad');
           whatchedState.feedsLinks.push(value);
-          form.reset();
-          input.focus();
-          whatchedUi.btnDisable = false;
-          refreshPosts();
         })
         .catch((err) => {
-          whatchedState.form.success = '';
+          whatchedState.form.status = 'error';
           whatchedState.form.errors = i18nIn.t(`errors.${err.message}`);
-          whatchedUi.btnDisable = false;
-          input.focus();
-        });
+        })
+        .finally(() => { whatchedState.form.status = 'filling'; });
     });
 
     const posts = document.querySelector('.posts');
@@ -207,5 +225,6 @@ export default () => {
       });
     };
     makeTranslation(defaultLanguage);
+    refreshPosts();
   });
 };
