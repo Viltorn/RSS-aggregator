@@ -118,3 +118,13 @@ export const handleFormStatus = (value, elements) => {
       break;
   }
 };
+
+export const renderLanguage = (value, elements) => {
+  elements.langBtn.forEach((btn) => {
+    if (btn.value === value) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+};

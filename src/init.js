@@ -4,6 +4,7 @@ import _ from 'lodash';
 import onChange from 'on-change';
 import * as yup from 'yup';
 import ru from './locales/ru.js';
+import en from './locales/en.js';
 import { renderForm, uiRender } from './view.js';
 
 export default () => {
@@ -12,7 +13,7 @@ export default () => {
   i18nIn.init({
     lng: '',
     debug: false,
-    resources: { ru },
+    resources: { ru, en },
   }).then(() => {
     const initialState = {
       form: {
@@ -63,6 +64,7 @@ export default () => {
       },
       feedsContainer: document.querySelector('.feeds'),
       postsContainer: document.querySelector('.posts'),
+      langBtn: document.querySelectorAll('[aria-label="language"]'),
     };
 
     const whatchedUi = onChange(uiState, uiRender(uiState, elements));
@@ -224,6 +226,14 @@ export default () => {
         };
       });
     };
+
+    elements.langBtn.forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        makeTranslation(e.target.value);
+      });
+    });
+
     makeTranslation(defaultLanguage);
     refreshPosts();
   });

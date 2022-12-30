@@ -4,6 +4,7 @@ import {
   renderPosts,
   toogleModal,
   handleFormStatus,
+  renderLanguage,
 } from './utils';
 
 export const renderForm = (formElements) => (path, value) => {
@@ -35,6 +36,9 @@ export const uiRender = (state, elements) => (path, value) => {
       break;
     case 'interface':
       renderInterface(value, elements);
+      break;
+    case 'language':
+      renderLanguage(value, elements);
       break;
     default:
       break;
