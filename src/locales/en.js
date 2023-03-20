@@ -7,7 +7,7 @@ export default {
     example: 'Example: https://ru.hexlet.io/lessons.rss',
     feedsTitle: 'Feeds',
     postsTitle: 'Posts',
-    modalOpen: 'Look at',
+    modalOpen: 'Read',
     successLoad: 'RSS successfully loaded',
     modalRef: 'Read',
     modalClose: 'Close',
